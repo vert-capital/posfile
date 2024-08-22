@@ -68,6 +68,78 @@ func ParseTags(t reflect.Type) (TagCollection, error) {
 	return line, nil
 }
 
+func UnparseValue(rv reflect.Value, line TagCollection, content string) error {
+	var err error
+	t := rv.Type()
+	start := 0
+
+	for i := 0; i < rv.NumField(); i++ {
+		field := t.Field(i)
+		value := rv.Field(i)
+
+		tg := Tags(line)[field.Name]
+
+		if tg == (Tag{}) {
+			continue
+		}
+
+		end := start + tg.Size
+
+		fieldContent := content[start:end]
+
+		err = Unconvert(value, tg, fieldContent)
+
+		if err != nil {
+			return err
+		}
+
+		start = end
+	}
+
+	return nil
+}
+
+func Unconvert(v reflect.Value, t Tag, content string) error {
+	switch v.Kind() {
+	case reflect.String:
+		v.SetString(strings.TrimSpace(content))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		i, err := strconv.ParseInt(strings.TrimSpace(content), 10, 64)
+
+		if err != nil {
+			return err
+		}
+
+		v.SetInt(i)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		i, err := strconv.ParseUint(strings.TrimSpace(content), 10, 64)
+
+		if err != nil {
+			return err
+		}
+
+		v.SetUint(i)
+	case reflect.Float32, reflect.Float64:
+		f, err := strconv.ParseFloat(strings.TrimSpace(content), 64)
+
+		if err != nil {
+			return err
+		}
+
+		v.SetFloat(f)
+	case reflect.Bool:
+		b, err := strconv.ParseBool(strings.TrimSpace(content))
+
+		if err != nil {
+			return err
+		}
+
+		v.SetBool(b)
+	}
+
+	return nil
+}
+
 func ParseValue(rv reflect.Value, line TagCollection) (string, error) {
 	var err error
 	var content strings.Builder

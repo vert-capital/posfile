@@ -75,3 +75,49 @@ func marshalStruct(rv reflect.Value) (string, error) {
 
 	return content, err
 }
+
+// Unmarshal parses a string with all lines and transforms it into the appropriate struct or slice of structs
+func Unmarshal(data string, v interface{}) error {
+	rv := reflect.ValueOf(v)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
+		return errors.New("v must be a non-nil pointer")
+	}
+
+	rv = rv.Elem()
+	lines := strings.Split(data, "\n")
+
+	switch rv.Kind() {
+	case reflect.Struct:
+		if len(lines) != 1 {
+			return errors.New("expected single line for struct")
+		}
+		return unmarshalStruct(lines[0], rv)
+	case reflect.Slice:
+		sliceType := rv.Type().Elem()
+		for _, line := range lines {
+			elem := reflect.New(sliceType).Elem()
+			if err := unmarshalStruct(line, elem); err != nil {
+				return err
+			}
+			rv.Set(reflect.Append(rv, elem))
+		}
+	default:
+		return errors.New("unsupported type")
+	}
+
+	return nil
+}
+
+func unmarshalStruct(line string, rv reflect.Value) error {
+	var c TagCollection
+
+	t := rv.Type()
+
+	c, err := ParseTags(t)
+
+	if err != nil {
+		return err
+	}
+
+	return UnparseValue(rv, c, line)
+}

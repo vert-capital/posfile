@@ -73,6 +73,25 @@ func UnparseValue(rv reflect.Value, line TagCollection, content string) error {
 	t := rv.Type()
 	start := 0
 
+	spectedLineSize := 0
+
+	for i := 0; i < rv.NumField(); i++ {
+		field := t.Field(i)
+
+		tg := Tags(line)[field.Name]
+
+		if tg == (Tag{}) {
+			continue
+		}
+
+		spectedLineSize += tg.Size
+	}
+
+	if len(content) != spectedLineSize {
+		ErrInvalidLineSize := fmt.Errorf("Invalid line size. Expected %d, got %d line \n %s", spectedLineSize, len(content), content)
+		return ErrInvalidLineSize
+	}
+
 	for i := 0; i < rv.NumField(); i++ {
 		field := t.Field(i)
 		value := rv.Field(i)

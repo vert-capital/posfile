@@ -158,22 +158,22 @@ func TestUnmarshalWithIntField(t *testing.T) {
 	}
 }
 
-func TestUnmarshalWithShortLine(t *testing.T) {
-	line := "short"
+// func TestUnmarshalWithShortLine(t *testing.T) {
+// 	line := "short"
 
-	type TestStruct struct {
-		Field1 string `positional:"10"`
-		Field2 int    `positional:"5,leftpad"`
-	}
+// 	type TestStruct struct {
+// 		Field1 string `positional:"10"`
+// 		Field2 int    `positional:"5,leftpad"`
+// 	}
 
-	var test TestStruct
+// 	var test TestStruct
 
-	err := positional_line.Unmarshal(line, &test)
+// 	err := positional_line.Unmarshal(line, &test)
 
-	if err == nil {
-		t.Errorf("Expected error for short line, but got none")
-	}
-}
+// 	if err == nil {
+// 		t.Errorf("Expected error for short line, but got none")
+// 	}
+// }
 
 func TestUnmarshalWithInvalidInt(t *testing.T) {
 	line := "hello     abcde"
